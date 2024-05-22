@@ -1,3 +1,7 @@
+import 'dayjs/locale/pt-br'
+
+import dayjs from 'dayjs'
+import relativeTime from 'dayjs/plugin/relativeTime'
 import {
   ChevronLeft,
   ChevronRight,
@@ -6,14 +10,36 @@ import {
   MoreHorizontal,
   Search,
 } from 'lucide-react'
+import { useState } from 'react'
 
+import { attendees } from '../data/attendees'
 import { IconButton } from './icon-button'
 import { Table } from './table/table'
 import { TableCell } from './table/table-cell'
 import { TableHeader } from './table/table-header'
 import { TableRow } from './table/table-row'
 
+dayjs.extend(relativeTime)
+dayjs.locale('pt-br')
+
 export function AttendeeList() {
+  const [page, setPage] = useState(1)
+
+  const totalPages = Math.ceil(attendees.length / 10)
+
+  function goToFirstPage() {
+    setPage(1)
+  }
+  function goToNextPage() {
+    setPage(page + 1)
+  }
+  function goToPreviousPage() {
+    setPage(page - 1)
+  }
+  function goToLastPage() {
+    setPage(totalPages)
+  }
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex gap-3 items-center">
@@ -53,9 +79,9 @@ export function AttendeeList() {
           </tr>
         </thead>
         <tbody>
-          {Array.from({ length: 10 }).map((_, index) => {
+          {attendees.slice((page - 1) * 10, page * 10).map((attendee) => {
             return (
-              <TableRow key={index}>
+              <TableRow key={attendee.id}>
                 <TableCell>
                   <input
                     type="checkbox"
@@ -64,17 +90,17 @@ export function AttendeeList() {
                     id=""
                   />
                 </TableCell>
-                <TableCell>232323</TableCell>
+                <TableCell>{attendee.id}</TableCell>
                 <TableCell>
                   <div className="flex flex-col gap-1">
                     <span className="font-semibold text-white">
-                      Don Diego de la Vaga
+                      {attendee.name}
                     </span>
-                    <span>donDiegoVega@gmail.com</span>
+                    <span>{attendee.email}</span>
                   </div>
                 </TableCell>
-                <TableCell>8 dias atrás</TableCell>
-                <TableCell>5 dias atrás</TableCell>
+                <TableCell>{dayjs().to(attendee.createdAt)}</TableCell>
+                <TableCell>{dayjs().to(attendee.checkedInAt)}</TableCell>
                 <TableCell>
                   <IconButton transparent>
                     <MoreHorizontal className="size-4" />
@@ -86,24 +112,34 @@ export function AttendeeList() {
         </tbody>
         <tfoot>
           <tr>
-            <TableCell colSpan={3}>Mostrando 10 de 120 itens</TableCell>
+            <TableCell colSpan={3}>
+              Mostrando 10 de {attendees.length} itens
+            </TableCell>
             <TableCell
               className="py-3 px-4 text-sm text-zinc-300 text-right"
               colSpan={3}
             >
               <div className="inline-flex items-center gap-8">
-                <span> Página 1 de 22</span>
+                <span>
+                  Página {page} de {totalPages}
+                </span>
                 <div className="flex gap-1">
-                  <IconButton>
+                  <IconButton onClick={goToFirstPage} disabled={page === 1}>
                     <ChevronsLeft className="size-4" />
                   </IconButton>
-                  <IconButton>
+                  <IconButton onClick={goToPreviousPage} disabled={page === 1}>
                     <ChevronLeft className="size-4" />
                   </IconButton>
-                  <IconButton>
+                  <IconButton
+                    onClick={goToNextPage}
+                    disabled={page === totalPages}
+                  >
                     <ChevronRight className="size-4" />
                   </IconButton>
-                  <IconButton>
+                  <IconButton
+                    onClick={goToLastPage}
+                    disabled={page === totalPages}
+                  >
                     <ChevronsRight className="size-4" />
                   </IconButton>
                 </div>
